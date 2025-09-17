@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./src:/app/src      # LINK MY PC ./src -> Container /app/src
+      - /app/node_modules   # Keep node_modules in container
+    ports:
+      - "3000:3000"
+    command: npm run dev # Override CMD ["npm", "start"]
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
