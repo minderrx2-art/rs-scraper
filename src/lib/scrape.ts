@@ -1,6 +1,5 @@
 import * as cheerio from 'cheerio'
 import axios from 'axios'
-
 const NEWS_ARTICLE_IDENTIFIER = 'a.readMore.news-list-article__read-more'
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
