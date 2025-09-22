@@ -3,6 +3,8 @@ FROM node:20
 # Set working directory to container root
 WORKDIR /app
 
+RUN mkdir -p /app/documents
+
 # Copy package files first
 COPY package*.json ./
 

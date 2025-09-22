@@ -3,6 +3,7 @@ services:
     build: .
     volumes:
       - ./src:/app/src      # LINK MY PC ./src -> Container /app/src
+      - ./documents:/app/documents   # bind mount host ./documents to container /app/documents
       - /app/node_modules   # Keep node_modules in container
     ports:
       - "3000:3000"
@@ -11,3 +12,8 @@ services:
     image: redis:8
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data #link new volume to where redis store data
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+volumes:
+  redis-data: #make new volume
