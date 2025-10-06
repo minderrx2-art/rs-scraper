@@ -8,6 +8,9 @@ services:
     ports:
       - "3000:3000"
     command: npm run dev # Override CMD ["npm", "start"]
+    env_file: .env
+    environment:
+      - RUN_SCRAPER=${RUN_SCRAPER:-false} # Use RUN_SCRAPER if it exists otherwise use false
   redis:
     image: redis:8
     ports:
