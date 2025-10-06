@@ -1,5 +1,9 @@
 import * as cheerio from 'cheerio'
 import axios from 'axios'
+import fs from 'fs'
+import path from 'path'
+import { store, get } from './../model/cache.ts'
+
 const NEWS_ARTICLE_IDENTIFIER = 'a.readMore.news-list-article__read-more'
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
@@ -7,6 +11,15 @@ const USER_AGENTS = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1',
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 ]
+
+const DELAY = 5000
+const DELAY_LONG = 300000 // 5 min
+
+// minWait is in seconds
+const DELAY_VARIABILITY = (minWait: number) => {
+  return (Math.floor(Math.random() * 10) * 1000 * minWait)
+}
+
 /**
  * @param url URL of website to scrape
  * @returns HTML string promise
@@ -59,4 +72,81 @@ export const getUrls = (): string[] => {
     }
   }
   return urls
+}
+/**
+ * Wraps around scrapping and will keep retrying if a request is denied after waiting for a set delay
+ * @param fn callback
+ * @param args URL to scrape
+ * @param retries number of attempts
+ * @returns 
+ */
+export const getHTMLWrapper = async <T>(fn: Function, args: string[], retries: number = 5): Promise<T> => {
+  for (let i = 1; i < retries; i++) {
+    try {
+      return await fn(...args)
+    }
+    catch (err) {
+      console.log('[ERROR] Putting to sleep for ' + (DELAY_LONG * i) / 1000)
+      await sleep(DELAY_LONG * i)
+    }
+  }
+  throw new Error(`[FATAL] All retries failed for url ${args}`)
+}
+
+const sleep = async (delay: number) => {
+  await new Promise(res => setTimeout(res, delay + DELAY_VARIABILITY(5)))
+}
+
+/**
+ * Checks cache for last scraped URL and returns it
+ */
+const reduceUrls = async (archiveUrls: string[]) => {
+  const cachedUrl = await get('archive_url')
+  const index = archiveUrls.findIndex((url) => url === cachedUrl)
+  return index > -1 ? archiveUrls.slice(index) : archiveUrls
+}
+
+/**
+ * Extracts dev blog name
+ * @param link 
+ * @returns 
+ */
+const generateFileName = (link: string) => {
+  const match = link.match(/m=news\/([^?]+)/) ?? []
+  return `${match[1]?.replaceAll('-', '_')}.html`
+}
+
+/**
+ * Generates a file path based on the url
+ * @param link 
+ */
+const generateFilePath = (link: string, fileName: string) => {
+  const rootPath = process.cwd()
+  const filePath = path.join(rootPath, "documents")
+  return path.join(filePath, fileName)
+}
+
+export const scrape = async () => {
+  const archiveUrls = getUrls()
+  const urlsToScrape = await reduceUrls(archiveUrls)
+
+  for (let url of urlsToScrape) {
+    await store('archive_url', url)
+    const archiveHTML = await getHTMLWrapper<string>(getHTML, [url])
+    const links = await getArticleHrefs(archiveHTML)
+
+    if (!links) continue
+
+    for (const link of links) {
+      const fileName = generateFileName(link)
+      const filePath = generateFilePath(link, fileName)
+      if (fs.existsSync(filePath)) {
+        continue
+      }
+      const devdiaryHTML = await getHTMLWrapper<string>(getHTML, [link])
+      fs.writeFileSync(filePath, devdiaryHTML, "utf8")
+      await sleep(DELAY)
+      console.log('[INFO] Wrote', fileName)
+    }
+  }
 }
