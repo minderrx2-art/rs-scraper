@@ -13,7 +13,7 @@ export const store = async (key: string, value: string | number): Promise<void> 
     throw new Error('[FATAL] Redis failed to store a value')
   }
 
-  console.log(`[INFO] Value stored: ${reply}`)
+  console.log(`[CACHE] Value stored: ${reply}`)
 }
 
 export const get = async (key: string): Promise<string | null> => {
