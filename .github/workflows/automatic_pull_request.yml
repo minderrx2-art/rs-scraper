@@ -1,29 +1,24 @@
-name: Auto PR from staging to main
-
+name: Auto PR from staging to master
 on:
   push:
     branches:
       - staging
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Create or update pull request to main
+      - name: Create or update pull request to master
         uses: repo-sync/pull-request@v2
         with:
           source_branch: staging
-          destination_branch: main
+          destination_branch: master
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_title: "Auto-merge: staging → main"
+          pr_title: "Auto-merge: staging → master"
           pr_body: |
             This pull request was automatically created by a GitHub Action
             when code was pushed to the **staging** branch.
