@@ -7,13 +7,13 @@ const client = redis.createClient({
 export const store = async (key: string, value: string | number): Promise<void> => {
   await client.set(key, value)
 
-  const replay = await client.get(key);
+  const reply = await client.get(key);
 
-  if (!replay) {
+  if (!reply) {
     throw new Error('[FATAL] Redis failed to store a value')
   }
 
-  console.log(`[INFO] Value stored: ${replay}`)
+  console.log(`[CACHE] Value stored: ${reply}`)
 }
 
 export const get = async (key: string): Promise<string | null> => {
