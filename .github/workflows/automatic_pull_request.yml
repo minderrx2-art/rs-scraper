@@ -1,22 +1,17 @@
 name: Auto PR from staging to master
-
 on:
   push:
     branches:
       - staging
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Create or update pull request to master
         uses: repo-sync/pull-request@v2
         with:
