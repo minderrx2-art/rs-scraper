@@ -9,3 +9,7 @@ RUN_SCRAPER=true docker-compose up
 
 # Env variables
 RUN_SCRAPER=true
+
+# Run vitest
+npm t
+
