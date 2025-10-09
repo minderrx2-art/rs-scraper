@@ -1,13 +1,26 @@
-const add = (a: number, b: number) => {
-  return a + b
-}
+import { describe, it, expect, vi } from 'vitest'
+import { main } from '../src/index.js'
 
-describe('add_0()', () => {
-  test('adds two numbers correctly', () => {
-    expect(add(2, 3)).toBe(5);
-  });
+vi.mock('../src/lib/scrape.js', () => ({
+  scrape: vi.fn()
+}))
 
-  test('handles negatives', () => {
-    expect(add(-1, 1)).toBe(0);
-  });
-});
+vi.mock('../src/server.js', () => ({
+  start: vi.fn()
+}))
+
+describe('main', () => {
+  it('runs scraper when env=true', async () => {
+    process.env.RUN_SCRAPER = 'true'
+    await main()
+    const { scrape } = await import('../src/lib/scrape.js')
+    expect(scrape).toHaveBeenCalled()
+  })
+
+    it('runs server when env=false', async () => {
+    process.env.RUN_SCRAPER = 'false'
+    await main()
+    const { start } = await import('../src/server.ts')
+    expect(start).toHaveBeenCalled()
+  })
+})
