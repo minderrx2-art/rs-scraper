@@ -1,12 +1,12 @@
 name: Auto PR from staging to master
 on:
-  push:
+  push: # Trigger
     branches:
       - staging
 permissions:
   contents: write
   pull-requests: write
-jobs:
+jobs: # Action
   create-pull-request:
     runs-on: ubuntu-latest
     steps:

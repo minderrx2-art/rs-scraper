@@ -11,4 +11,9 @@ async function main() {
   }
 }
 
-main()
+// Only run if called via 'node src/index.ts'
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main()
+}
+
+export { main }
