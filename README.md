@@ -12,3 +12,4 @@ RUN_SCRAPER=true
 
 # Run vitest
 npm t
+
