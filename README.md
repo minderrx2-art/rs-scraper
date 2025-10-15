@@ -9,6 +9,8 @@ RUN_SCRAPER=true docker-compose up
 
 # Env variables
 RUN_SCRAPER=true
+REDIS_HOST=XXXX.XXXX.XXXX.XXXX
+REDIS_PORT=XXXX
 
 # Run vitest
 npm t
