@@ -1,8 +1,9 @@
 name: Auto PR from staging to master
-on:
+on: 
   push: # Trigger
-    branches:
-      - staging
+    branches: [ staging ]
+  pull_request:
+    branches: [ staging ]
 permissions:
   contents: write
   pull-requests: write

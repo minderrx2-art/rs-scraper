@@ -3,14 +3,14 @@ services:
     build: .
     volumes:
       - ./src:/app/src      # LINK MY PC ./src -> Container /app/src
-      - ./documents:/app/documents   # bind mount host ./documents to container /app/documents
-      - /app/node_modules   # Keep node_modules in container
+      - ~/.rs-scraper-475008-9b616e52d02b.json:/app/credentials.json:ro
     ports:
       - "3000:3000"
     command: npm run dev # Override CMD ["npm", "start"]
     env_file: .env
     environment:
       - RUN_SCRAPER=${RUN_SCRAPER:-false} # Use RUN_SCRAPER if it exists otherwise use false
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
   redis:
     image: redis:8
     ports:

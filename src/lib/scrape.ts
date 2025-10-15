@@ -1,8 +1,7 @@
 import * as cheerio from 'cheerio'
 import axios from 'axios'
-import fs from 'fs'
-import path from 'path'
-import { store, get } from './../model/cache.ts'
+import { store, get } from '../model/cache.ts'
+import { saveFile, fileExists } from '../model/storage.ts'
 
 const NEWS_ARTICLE_IDENTIFIER = 'a.readMore.news-list-article__read-more'
 const USER_AGENTS = [
@@ -116,16 +115,6 @@ const generateFileName = (link: string) => {
   return `${match[1]?.replaceAll('-', '_')}.html`
 }
 
-/**
- * Generates a file path based on the url
- * @param link 
- */
-const generateFilePath = (link: string, fileName: string) => {
-  const rootPath = process.cwd()
-  const filePath = path.join(rootPath, "documents")
-  return path.join(filePath, fileName)
-}
-
 export const scrape = async () => {
   const archiveUrls = getUrls()
   const urlsToScrape = await reduceUrls(archiveUrls)
@@ -139,14 +128,13 @@ export const scrape = async () => {
 
     for (const link of links) {
       const fileName = generateFileName(link)
-      const filePath = generateFilePath(link, fileName)
-      if (fs.existsSync(filePath)) {
+      if (await fileExists(fileName)) {
         continue
       }
       const devdiaryHTML = await getHTMLWrapper<string>(getHTML, [link])
-      fs.writeFileSync(filePath, devdiaryHTML, "utf8")
-      await sleep(DELAY)
+      await saveFile(fileName, devdiaryHTML)
       console.log('[INFO] Wrote', fileName)
+      await sleep(DELAY)
     }
   }
 }

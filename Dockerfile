@@ -3,8 +3,6 @@ FROM node:20
 # Set working directory to container root
 WORKDIR /app
 
-RUN mkdir -p /app/documents
-
 # Copy package files first
 COPY package*.json ./
 
@@ -14,6 +12,6 @@ RUN npm install -g ts-node nodemon typescript
 
 # Copy the source code
 COPY tsconfig.json /app
-
+COPY . .
 # Run npm start
 CMD ["npm", "start"]
