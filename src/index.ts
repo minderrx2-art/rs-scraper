@@ -1,12 +1,15 @@
 import { start } from './server.ts'
 import { scrape } from './lib/scrape.ts'
+import { info } from './lib/logger.ts'
 
 async function main() {
   if (process.env.RUN_SCRAPER === 'true') {
-    console.log('[INFO] Scraping data')
+    info('Scraping website')
     await scrape()
+    info('Scraping finished')
+    process.exit(0)
   } else {
-    console.log('[INFO] Running server')
+    info('Running server')
     await start()
   }
 }
