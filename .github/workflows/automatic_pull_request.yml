@@ -22,3 +22,4 @@ jobs: # Action
             This pull request was automatically created by a GitHub Action
             when code was pushed to the **staging** branch.
           pr_draft: false
+
