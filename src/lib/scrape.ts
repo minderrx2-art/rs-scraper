@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio'
 import axios from 'axios'
 import { store, get } from '../model/cache.ts'
 import { saveFile, fileExists } from '../model/storage.ts'
+import { warn, info, error } from './logger.ts'
 
 const NEWS_ARTICLE_IDENTIFIER = 'a.readMore.news-list-article__read-more'
 const USER_AGENTS = [
@@ -11,8 +12,8 @@ const USER_AGENTS = [
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 ]
 
-const DELAY = 5000
-const DELAY_LONG = 300000 // 5 min
+const DELAY = 2000
+const DELAY_LONG = 180000 // 3 min
 
 // minWait is in seconds
 const DELAY_VARIABILITY = (minWait: number) => {
@@ -35,7 +36,7 @@ export const getHTML = async (url: string): Promise<string> => {
     const $ = cheerio.load(data)
     return $.html()
   } catch (error) {
-    console.error("[ERROR] Failed to fetch Html for: ", url)
+    warn('1', 'Failed to fetch for URL', url)
     throw error
   }
 }
@@ -79,13 +80,13 @@ export const getUrls = (): string[] => {
  * @param retries number of attempts
  * @returns 
  */
-export const getHTMLWrapper = async <T>(fn: Function, args: string[], retries: number = 5): Promise<T> => {
+export const getHTMLWrapper = async <T>(fn: Function, args: string[], retries: number = 3): Promise<T> => {
   for (let i = 1; i < retries; i++) {
     try {
       return await fn(...args)
     }
     catch (err) {
-      console.log('[ERROR] Putting to sleep for ' + (DELAY_LONG * i) / 1000)
+      info('1', 'Putting to sleep for', (DELAY_LONG * i) / 1000)
       await sleep(DELAY_LONG * i)
     }
   }
@@ -100,8 +101,9 @@ const sleep = async (delay: number) => {
  * Checks cache for last scraped URL and returns it
  */
 const reduceUrls = async (archiveUrls: string[]) => {
+  const lastScrapedEnv = process.env.LAST_SCRAPED_URL
   const cachedUrl = await get('archive_url')
-  const index = archiveUrls.findIndex((url) => url === cachedUrl)
+  const index = archiveUrls.findIndex((url) => (url === cachedUrl || url === lastScrapedEnv))
   return index > -1 ? archiveUrls.slice(index) : archiveUrls
 }
 
@@ -115,10 +117,13 @@ const generateFileName = (link: string) => {
   return `${match[1]?.replaceAll('-', '_')}.html`
 }
 
+/**
+ * Main scraping logic goes through dev blogs one by one and saves them
+ * @returns Promise resolves when done scraping
+ */
 export const scrape = async () => {
   const archiveUrls = getUrls()
   const urlsToScrape = await reduceUrls(archiveUrls)
-
   for (let url of urlsToScrape) {
     await store('archive_url', url)
     const archiveHTML = await getHTMLWrapper<string>(getHTML, [url])
@@ -131,10 +136,16 @@ export const scrape = async () => {
       if (await fileExists(fileName)) {
         continue
       }
-      const devdiaryHTML = await getHTMLWrapper<string>(getHTML, [link])
-      await saveFile(fileName, devdiaryHTML)
-      console.log('[INFO] Wrote', fileName)
-      await sleep(DELAY)
+      try {
+        const devdiaryHTML = await getHTMLWrapper<string>(getHTML, [link])
+        await saveFile(fileName, devdiaryHTML)
+        info('Wrote file', fileName)
+        await sleep(DELAY)
+      } catch (e) {
+        error('Failed 3 retries, skipping', link)
+        continue
+      }
     }
   }
+  return Promise.resolve()
 }

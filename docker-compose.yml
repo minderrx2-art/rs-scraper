@@ -11,6 +11,7 @@ services:
     environment:
       - RUN_SCRAPER=${RUN_SCRAPER:-false} # Use RUN_SCRAPER if it exists otherwise use false
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      - LAST_SCRAPED_URL=${LAST_SCRAPED_URL}
   redis:
     image: redis:8
     ports:
