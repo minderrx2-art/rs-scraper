@@ -11,6 +11,7 @@ RUN_SCRAPER=true docker-compose up
 RUN_SCRAPER=true
 REDIS_HOST=XXXX.XXXX.XXXX.XXXX
 REDIS_PORT=XXXX
+LAST_SCRAPED_URL=https://secure.runescape.com/m=news/archive?oldschool=1&year=2025&month=3 // Example
 
 # Run vitest
 npm t
